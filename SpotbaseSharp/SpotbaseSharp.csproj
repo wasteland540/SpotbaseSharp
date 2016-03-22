@@ -188,6 +188,7 @@
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="Messages\ChooseExportPatConfirmMsg.cs" />
+    <Compile Include="ViewModels\ViewModelBaseExtension.cs" />
     <Compile Include="Views\ExportView.xaml.cs">
       <DependentUpon>ExportView.xaml</DependentUpon>
     </Compile>

@@ -79,7 +79,7 @@ namespace SpotbaseSharp.ViewModels
                 if (value != null && value != _spots)
                 {
                     _spots = value;
-                    RaisePropertyChanged("Spots");
+                    RaisePropertyChanged(() => Spots);
                 }
             }
         }
@@ -92,7 +92,7 @@ namespace SpotbaseSharp.ViewModels
                 if (value != null && value != _selectedSpot)
                 {
                     _selectedSpot = value;
-                    RaisePropertyChanged("SelectedSpot");
+                    RaisePropertyChanged(() => SelectedSpot);
 
                     LocationUrl = string.Format(LocationUrlTemplate,
                         _selectedSpot.Lat.ToString(CultureInfo.InvariantCulture).Replace(",", "."),
@@ -127,7 +127,7 @@ namespace SpotbaseSharp.ViewModels
                 if (value != null && value != _cities)
                 {
                     _cities = value;
-                    RaisePropertyChanged("Cities");
+                    RaisePropertyChanged(() => Cities);
                 }
             }
         }
@@ -145,7 +145,7 @@ namespace SpotbaseSharp.ViewModels
                 if (value != null && value != _citiesForAutocomplete)
                 {
                     _citiesForAutocomplete = value;
-                    RaisePropertyChanged("CitiesForAutocomplete");
+                    RaisePropertyChanged(() => CitiesForAutocomplete);
                 }
             }
         }
@@ -156,7 +156,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _searchValue = value;
-                RaisePropertyChanged("SearchValue");
+                RaisePropertyChanged(() => SearchValue);
             }
         }
 
@@ -166,7 +166,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _selectedCity = value;
-                RaisePropertyChanged("SelectedCity");
+                RaisePropertyChanged(() => SelectedCity);
 
                 Spots = !string.IsNullOrEmpty(_selectedCity)
                     ? new ObservableCollection<Spot>(_databaseService.GetSpotsByCity(_selectedCity))
@@ -185,7 +185,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _locationUrl = value;
-                RaisePropertyChanged("LocationUrl");
+                RaisePropertyChanged(() => LocationUrl);
             }
         }
 
@@ -210,7 +210,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _hasLargeImage = value;
-                RaisePropertyChanged("HasLargeImage");
+                RaisePropertyChanged(() => HasLargeImage);
             }
         }
 
@@ -230,7 +230,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _notSetChecked = value;
-                RaisePropertyChanged("NotSetChecked");
+                RaisePropertyChanged(() => NotSetChecked);
 
                 ApplyTypeFilter();
             }
@@ -242,7 +242,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _curbChecked = value;
-                RaisePropertyChanged("CurbChecked");
+                RaisePropertyChanged(() => CurbChecked);
 
                 ApplyTypeFilter();
             }
@@ -254,7 +254,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _ledgeChecked = value;
-                RaisePropertyChanged("LedgeChecked");
+                RaisePropertyChanged(() => LedgeChecked);
 
                 ApplyTypeFilter();
             }
@@ -266,7 +266,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _railChecked = value;
-                RaisePropertyChanged("RailChecked");
+                RaisePropertyChanged(() => RailChecked);
 
                 ApplyTypeFilter();
             }
@@ -278,7 +278,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _gapChecked = value;
-                RaisePropertyChanged("GapChecked");
+                RaisePropertyChanged(() => GapChecked);
 
                 ApplyTypeFilter();
             }
@@ -290,7 +290,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _parkChecked = value;
-                RaisePropertyChanged("ParkChecked");
+                RaisePropertyChanged(() => ParkChecked);
 
                 ApplyTypeFilter();
             }
@@ -302,7 +302,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _creativeChecked = value;
-                RaisePropertyChanged("CreativeChecked");
+                RaisePropertyChanged(() => CreativeChecked);
 
                 ApplyTypeFilter();
             }

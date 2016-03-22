@@ -56,7 +56,7 @@ namespace SpotbaseSharp.ViewModels
                 if (value != null && value != _spots)
                 {
                     _spots = value;
-                    RaisePropertyChanged("Spots");
+                    RaisePropertyChanged(() => Spots);
                 }
             }
         }
@@ -69,7 +69,7 @@ namespace SpotbaseSharp.ViewModels
                 _selectedSpot = value;
                 _selectedSpot.Selected = !_selectedSpot.Selected;
 
-                RaisePropertyChanged("SelectedSpot");
+                RaisePropertyChanged(() => SelectedSpot);
             }
         }
 
@@ -84,7 +84,7 @@ namespace SpotbaseSharp.ViewModels
             set
             {
                 _exportPath = value;
-                RaisePropertyChanged("ExportPath");
+                RaisePropertyChanged(() => ExportPath);
             }
         }
 

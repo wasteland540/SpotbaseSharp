@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.Linq.Expressions;
 using System.Windows;
 using Microsoft.Practices.Unity;
 
@@ -22,6 +24,12 @@ namespace SpotbaseSharp.ViewModels
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(info));
             }
+        }
+
+        public void RaisePropertyChanged<T>(Expression<Func<T>> property)
+        {
+            string name = this.GetPropertyNameFromExpression(property);
+            RaisePropertyChanged(name);
         }
     }
 }
