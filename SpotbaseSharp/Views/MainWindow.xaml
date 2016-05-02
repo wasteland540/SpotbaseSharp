@@ -35,6 +35,11 @@
                         <Image Source="../Resources/edit-add-3.png"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="Add New from Google Drive..." Height="24" Command="{Binding AddNewGoogleDriveCommand}" IsEnabled="{Binding IsGoogleDriveEnabled}">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/edit-add-3.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator />
                 <MenuItem Header="Import..." Height="24" Command="{Binding ImportCommand}">
                     <MenuItem.Icon>
@@ -66,6 +71,16 @@
                 <MenuItem Header="Help" Height="24" Command="{Binding HelpFilterCommand}">
                     <MenuItem.Icon>
                         <Image Source="../Resources/help-3.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Exchange">
+                <MenuItem.Icon>
+                    <Image Source="../Resources/view-refresh-2.png"/>
+                </MenuItem.Icon>
+                <MenuItem Header="Google Drive Activation" Height="24" Command="{Binding ActivateGoogleDriveCommand}" ToolTip="This will create a 'SpotbaseSharp' folder in your Google Drive.">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Google-Drive-icon.png"/>
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>

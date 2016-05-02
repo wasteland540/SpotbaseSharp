@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using GalaSoft.MvvmLight.Messaging;
 using Microsoft.Practices.Unity;
 using SpotbaseSharp.DataAccessLayer;
@@ -19,7 +20,10 @@ namespace SpotbaseSharp
         protected override void OnStartup(StartupEventArgs e)
         {
             Container = new UnityContainer();
-            _dbContext = new NDatabaseConnector();
+
+            string directory = Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData);
+            _dbContext = new NDatabaseConnector(directory);
 
             //database registration
             Container.RegisterInstance(typeof (IDataAccessLayer), _dbContext);
@@ -28,6 +32,7 @@ namespace SpotbaseSharp
             Container.RegisterType<IDatabaseService, DatabaseService>();
             Container.RegisterType<IImageService, ImageService>();
             Container.RegisterType<IDataService, DataService>();
+            Container.RegisterType<IGoogleDriveService, GoogleDriveService>();
 
             //registraions utils
             //only one instance from messenger can exists! (recipient problems..)

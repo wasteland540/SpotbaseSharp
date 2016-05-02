@@ -27,6 +27,8 @@ namespace SpotbaseSharp.Views
             _messenger.Register<ImportSuccessMsg>(this, OnImportSuccessMsg);
             _messenger.Register<ImportFaildMsg>(this, OnImportFaildMsg);
             _messenger.Register<HelpFilterMsg>(this, OnHelpFilterMsg);
+            _messenger.Register<GoogleDriveAccessDeniedMsg>(this, OnGoogleDriveAccessDeniedMsg);
+            _messenger.Register<GoogleDriveAlreadyEnabledMsg>(this, OnGoogleDriveAlreadyEnabledMsg);
         }
 
         [Dependency]
@@ -106,6 +108,18 @@ namespace SpotbaseSharp.Views
                 "\n - by Type (multiselection allowed)\n\nYou can't combine the filters, because i didn't" +
                 " implement that functionality! Maybe in a future version.",
                 "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void OnGoogleDriveAlreadyEnabledMsg(GoogleDriveAlreadyEnabledMsg msg)
+        {
+            MessageBox.Show("You already enabled Google Drive.",
+                "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void OnGoogleDriveAccessDeniedMsg(GoogleDriveAccessDeniedMsg msg)
+        {
+            MessageBox.Show("Access denied to Google Drive!",
+                "Waring", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         #endregion Private Methods

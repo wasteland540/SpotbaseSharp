@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using GalaSoft.MvvmLight.Messaging;
@@ -12,6 +14,7 @@ using SpotbaseSharp.Messages;
 using SpotbaseSharp.Model;
 using SpotbaseSharp.Services;
 using SpotbaseSharp.Views;
+using SpotbaseSharp.Views.GoogleDrive;
 
 namespace SpotbaseSharp.ViewModels
 {
@@ -22,24 +25,30 @@ namespace SpotbaseSharp.ViewModels
 
         private const string RouteUrlTemplate = "https://www.google.com/maps/dir/Current+Location/{0}, {1}";
         private readonly IDataService _dataService;
-
         private readonly IDatabaseService _databaseService;
         private readonly IImageService _imageService;
         private readonly IMessenger _messenger;
+        private ICommand _activateGoogleDriveCommand;
         private ICommand _addNewCommand;
+        private ICommand _addNewGoogleDriveCommand;
         private ObservableCollection<string> _cities;
         private ObservableCollection<string> _citiesForAutocomplete;
         private ICommand _clearFilterCommand;
         private bool _creativeChecked;
         private bool _curbChecked;
+        private int _currentDownloadCount;
         private ICommand _deleteSpotCommand;
         private ICommand _exitCommand;
         private ICommand _exportCommand;
         private ExportView _exportView;
         private bool _gapChecked;
+        private IGoogleDriveService _googleDriveService;
+        private Dictionary<string, string> _googledriveDownloadPathList;
+        private bool _googledriveSaveLargeFile;
         private bool _hasLargeImage;
         private ICommand _helpFilterCommand;
         private ICommand _importCommand;
+        private bool _isGoogleDriveEnabled;
         private bool _ledgeChecked;
         private string _locationUrl;
         private bool _notSetChecked;
@@ -66,6 +75,17 @@ namespace SpotbaseSharp.ViewModels
             _messenger.Register<ChooseFilesConfirmMsg>(this, OnChooseFilesConfirmMsg);
             _messenger.Register<ImportConfirmMsg>(this, OnImportConfirmMsg);
             _messenger.Register<ExportViewClosedMsg>(this, OnExportviewClosedMsg);
+            _messenger.Register<ChooseFilesGoogleDriveConfirmMsg>(this, OnChooseFilesGoogleDriveConfirmMsg);
+            _messenger.Register<FileProcessFinishedMsg>(this, OnFileProcessFinishedMsg);
+
+            IsGoogleDriveEnabled =
+                Convert.ToBoolean(ConfigurationManager.AppSettings.Get(AppSettingConstants.IsGoogleDriveEnabled));
+
+            if (IsGoogleDriveEnabled)
+            {
+                _googleDriveService = Container.Resolve<IGoogleDriveService>();
+                _googleDriveService.DownloadCompleted += GoogleDriveService_DownloadCompleted;
+            }
         }
 
         #region Properties
@@ -328,6 +348,34 @@ namespace SpotbaseSharp.ViewModels
             get { return _helpFilterCommand = _helpFilterCommand ?? new DelegateCommand(HelpFilter); }
         }
 
+        public ICommand ActivateGoogleDriveCommand
+        {
+            get
+            {
+                _activateGoogleDriveCommand = _activateGoogleDriveCommand ?? new DelegateCommand(ActivateGoogleDrive);
+                return _activateGoogleDriveCommand;
+            }
+        }
+
+        public bool IsGoogleDriveEnabled
+        {
+            get { return _isGoogleDriveEnabled; }
+            set
+            {
+                _isGoogleDriveEnabled = value;
+                RaisePropertyChanged(() => IsGoogleDriveEnabled);
+            }
+        }
+
+        public ICommand AddNewGoogleDriveCommand
+        {
+            get
+            {
+                _addNewGoogleDriveCommand = _addNewGoogleDriveCommand ?? new DelegateCommand(AddNewGoogleDrive);
+                return _addNewGoogleDriveCommand;
+            }
+        }
+
         #endregion Properties
 
         #region Private Methods
@@ -532,6 +580,120 @@ namespace SpotbaseSharp.ViewModels
             GapChecked = false;
             ParkChecked = false;
             CreativeChecked = false;
+        }
+
+        private void ActivateGoogleDrive(object obj)
+        {
+            if (!IsGoogleDriveEnabled)
+            {
+                if (_googleDriveService == null)
+                {
+                    _googleDriveService = Container.Resolve<IGoogleDriveService>();
+                }
+
+                if (_googleDriveService != null && _googleDriveService.IsInitalized())
+                {
+                    _googleDriveService.CreateApplicationFolder();
+
+                    //Create the object
+                    Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+                    //make changes
+                    config.AppSettings.Settings[AppSettingConstants.IsGoogleDriveEnabled].Value = "true";
+
+                    //save to apply changes
+                    config.Save(ConfigurationSaveMode.Modified);
+                    ConfigurationManager.RefreshSection("appSettings");
+
+                    IsGoogleDriveEnabled = true;
+                }
+                else
+                {
+                    _messenger.Send(new GoogleDriveAccessDeniedMsg());
+                    _googleDriveService = null;
+                }
+            }
+            else
+            {
+                _messenger.Send(new GoogleDriveAlreadyEnabledMsg());
+            }
+        }
+
+        private void AddNewGoogleDrive(object obj)
+        {
+            var googleDriveFileChooserView = Container.Resolve<GoogleDriveFileChooserView>();
+            googleDriveFileChooserView.ShowDialog();
+        }
+
+        private void OnChooseFilesGoogleDriveConfirmMsg(ChooseFilesGoogleDriveConfirmMsg msg)
+        {
+            Mouse.OverrideCursor = Cursors.Wait;
+
+            _googledriveDownloadPathList = new Dictionary<string, string>();
+            _currentDownloadCount = 0;
+            _googledriveSaveLargeFile = msg.SaveLargeFile;
+
+            foreach (string fileId in msg.FileIds)
+            {
+                string path = Path.Combine(Path.GetTempPath(), fileId + ".jpg");
+                _googledriveDownloadPathList.Add(fileId, path);
+            }
+
+            foreach (var keyValuePair in _googledriveDownloadPathList)
+            {
+                _googleDriveService.DownloadFile(keyValuePair.Key, keyValuePair.Value);
+            }
+
+            Mouse.OverrideCursor = null;
+        }
+
+        private void GoogleDriveService_DownloadCompleted(object sender, EventArgs e)
+        {
+            _currentDownloadCount++;
+
+            if (_currentDownloadCount == _googledriveDownloadPathList.Count)
+            {
+                //all files are downloaded
+                foreach (string filename in _googledriveDownloadPathList.Values)
+                {
+                    DateTime createDate;
+                    double[] latLng = _imageService.GetLatLongFromImage(filename, out createDate);
+
+                    Guid smallFile = _imageService.CopySmallFile(filename);
+
+                    Guid largeFile = Guid.Empty;
+                    if (_googledriveSaveLargeFile)
+                    {
+                        largeFile = _imageService.CopyLargeFile(filename);
+                    }
+
+                    var spot = new Spot
+                    {
+                        CreatedAt = createDate,
+                        Lat = latLng != null ? latLng[0] : 0.0,
+                        Lng = latLng != null ? latLng[1] : 0.0,
+                        SmallFile = smallFile,
+                        LargeFile = largeFile,
+                    };
+
+                    _databaseService.AddSpot(spot);
+                }
+
+                if (_googledriveDownloadPathList.Count > 0)
+                {
+                    Reload();
+                }
+
+                _messenger.Send(new FileProcessFinishedMsg());
+            }
+        }
+
+        private void OnFileProcessFinishedMsg(FileProcessFinishedMsg msg)
+        {
+            foreach (string tmpPath in _googledriveDownloadPathList.Values)
+            {
+                File.Delete(tmpPath);
+            }
         }
 
         #endregion Private Methods
