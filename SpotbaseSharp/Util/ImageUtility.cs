@@ -8,7 +8,7 @@ namespace SpotbaseSharp.Util
 {
     public static class ImageUtility
     {
-        private static readonly string BasePath = AppDomain.CurrentDomain.BaseDirectory;
+        private static readonly string BasePath = App.AppDirectory;
 
         public static byte[] LoadImage(string fileName)
         {
