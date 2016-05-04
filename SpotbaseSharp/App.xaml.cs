@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Windows;
 using GalaSoft.MvvmLight.Messaging;
 using Microsoft.Practices.Unity;
@@ -16,14 +17,14 @@ namespace SpotbaseSharp
     {
         public IUnityContainer Container;
         private IDataAccessLayer _dbContext;
+        public static string AppDirectory = Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData), "SpotbaseSharp");
 
         protected override void OnStartup(StartupEventArgs e)
         {
             Container = new UnityContainer();
-
-            string directory = Environment.GetFolderPath(
-                Environment.SpecialFolder.LocalApplicationData);
-            _dbContext = new NDatabaseConnector(directory);
+            
+            _dbContext = new NDatabaseConnector(AppDirectory);
 
             //database registration
             Container.RegisterInstance(typeof (IDataAccessLayer), _dbContext);

@@ -10,7 +10,7 @@ namespace SpotbaseSharp.Services
         private const string SmallImageFoldername = "SmallImages";
         private const string LargeImageFoldername = "LargeImages";
         private const string JpegExtension = ".jpeg";
-        private readonly string _basePath = AppDomain.CurrentDomain.BaseDirectory;
+        private readonly string _basePath = App.AppDirectory;
 
         public double[] GetLatLongFromImage(string filename, out DateTime createDate)
         {
