@@ -29,6 +29,9 @@ namespace SpotbaseSharp.Views
             _messenger.Register<HelpFilterMsg>(this, OnHelpFilterMsg);
             _messenger.Register<GoogleDriveAccessDeniedMsg>(this, OnGoogleDriveAccessDeniedMsg);
             _messenger.Register<GoogleDriveAlreadyEnabledMsg>(this, OnGoogleDriveAlreadyEnabledMsg);
+            _messenger.Register<MobileKeyGeneratedMsg>(this, OnMobileKeyGeneratedMsg);
+            _messenger.Register<ShowMobileKeyMsg>(this, OnShowMobileKeyMsg);
+            _messenger.Register<MobileUpdateFinishedMsg>(this, OnMobileUpdateFinishedMsg);
         }
 
         [Dependency]
@@ -120,6 +123,24 @@ namespace SpotbaseSharp.Views
         {
             MessageBox.Show("Access denied to Google Drive!",
                 "Waring", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+
+        private void OnMobileKeyGeneratedMsg(MobileKeyGeneratedMsg msg)
+        {
+            MessageBox.Show("Your mobile key is generated.",
+                "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void OnShowMobileKeyMsg(ShowMobileKeyMsg msg)
+        {
+            MessageBox.Show(string.Format("Your mobile key: {0}", msg.MoibleKey),
+                "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void OnMobileUpdateFinishedMsg(MobileUpdateFinishedMsg msg)
+        {
+            MessageBox.Show(string.Format("Spots are updated for your mobile app."),
+                "Info", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         #endregion Private Methods

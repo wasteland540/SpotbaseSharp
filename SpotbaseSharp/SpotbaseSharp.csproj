@@ -24,8 +24,8 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>3</ApplicationRevision>
-    <ApplicationVersion>1.0.0.3</ApplicationVersion>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.1.0.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -134,8 +134,8 @@
     <Reference Include="NDatabase3">
       <HintPath>..\packages\NDatabase.3.8.0\lib\net45\NDatabase3.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -203,6 +203,7 @@
       <DependentUpon>SpotListControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converter\GuidToSmallImageConverter.cs" />
+    <Compile Include="Converter\InvertBoolConverter.cs" />
     <Compile Include="DataAccessLayer\IDataAccessLayer.cs" />
     <Compile Include="DataAccessLayer\IDbObject.cs" />
     <Compile Include="DataAccessLayer\NDatabase\NDatabaseConnector.cs" />
@@ -223,19 +224,31 @@
     <Compile Include="Messages\ImportFaildMsg.cs" />
     <Compile Include="Messages\ImportRequestMsg.cs" />
     <Compile Include="Messages\ImportSuccessMsg.cs" />
+    <Compile Include="Messages\MobileKeyGeneratedMsg.cs" />
+    <Compile Include="Messages\MobileUpdateFinishedMsg.cs" />
+    <Compile Include="Messages\ShowMobileKeyMsg.cs" />
+    <Compile Include="Model\JsonSpot.cs" />
     <Compile Include="Model\SelectableSpot.cs" />
     <Compile Include="Model\Serialization\SerializedSpot.cs" />
     <Compile Include="Model\Spot.cs" />
     <Compile Include="Model\SpotType.cs" />
+    <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Services\DatabaseService.cs" />
     <Compile Include="Services\DataService.cs" />
+    <Compile Include="Services\FtpService.cs" />
     <Compile Include="Services\GoogleDriveService.cs" />
+    <Compile Include="Services\IConfigService.cs" />
     <Compile Include="Services\IDatabaseService.cs" />
     <Compile Include="Services\IDataService.cs" />
+    <Compile Include="Services\IFtpService.cs" />
     <Compile Include="Services\IGoogleDriveService.cs" />
     <Compile Include="Services\IImageService.cs" />
+    <Compile Include="Services\IJsonService.cs" />
     <Compile Include="Services\ImageService.cs" />
+    <Compile Include="Services\JsonService.cs" />
+    <Compile Include="SpotbaseConstants.cs" />
     <Compile Include="Util\ImageUtility.cs" />
+    <Compile Include="Util\ShortGuid.cs" />
     <Compile Include="Util\WebBrowserUtility.cs" />
     <Compile Include="ViewModels\ExportViewModel.cs" />
     <Compile Include="ViewModels\GoogleDriveFileChooserViewModel.cs" />
@@ -345,6 +358,18 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\view-refresh-2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\msn-phone.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\key-add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\db_update.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\key-go.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

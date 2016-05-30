@@ -9,7 +9,6 @@ using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using SpotbaseSharp.Messages;
 using File = Google.Apis.Drive.v3.Data.File;
 
 namespace SpotbaseSharp.Services
@@ -18,9 +17,9 @@ namespace SpotbaseSharp.Services
     {
         private const string SpotbaseFolder = "SpotbaseSharp";
         private static readonly string[] Scopes = {DriveService.Scope.Drive};
-        private readonly Messenger _messenger;
         private readonly DriveService _driveService;
-        private bool _isInitalized;
+        private readonly bool _isInitalized;
+        private readonly Messenger _messenger;
 
         public GoogleDriveService(Messenger messenger)
         {
@@ -42,9 +41,9 @@ namespace SpotbaseSharp.Services
 
         public void CreateApplicationFolder()
         {
-            var fileMetadata = new File { Name = SpotbaseFolder, MimeType = "application/vnd.google-apps.folder" };
+            var fileMetadata = new File {Name = SpotbaseFolder, MimeType = "application/vnd.google-apps.folder"};
 
-            var request = _driveService.Files.Create(fileMetadata);
+            FilesResource.CreateRequest request = _driveService.Files.Create(fileMetadata);
             request.Fields = "id";
             request.Execute();
         }
@@ -52,11 +51,12 @@ namespace SpotbaseSharp.Services
         public File GetFolder()
         {
             FilesResource.ListRequest listRequest = _driveService.Files.List();
-            listRequest.Q = string.Format("mimeType = 'application/vnd.google-apps.folder' and name = '{0}'", SpotbaseFolder);
+            listRequest.Q = string.Format("mimeType = 'application/vnd.google-apps.folder' and name = '{0}'",
+                SpotbaseFolder);
             listRequest.PageSize = 10;
             listRequest.Fields = "nextPageToken, files(id, name, mimeType)";
 
-            var folder = listRequest.Execute().Files.FirstOrDefault();
+            File folder = listRequest.Execute().Files.FirstOrDefault();
 
             return folder;
         }
@@ -68,7 +68,7 @@ namespace SpotbaseSharp.Services
             listRequest.PageSize = 100;
             listRequest.Fields = "nextPageToken, files(id, name, mimeType)";
 
-            var files = listRequest.Execute().Files;
+            IList<File> files = listRequest.Execute().Files;
 
             return (List<File>) files;
         }
@@ -128,11 +128,10 @@ namespace SpotbaseSharp.Services
         {
             UserCredential credential = null;
 
-            //TODO: try / catch
             try
             {
                 using (var stream =
-                new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
+                    new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
                 {
                     credential =
                         GoogleWebAuthorizationBroker.AuthorizeAsync(
@@ -145,7 +144,6 @@ namespace SpotbaseSharp.Services
             }
             catch (Exception)
             {
-                
             }
 
             return credential;

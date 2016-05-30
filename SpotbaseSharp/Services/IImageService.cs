@@ -25,5 +25,7 @@ namespace SpotbaseSharp.Services
         Guid CopyLargeFile(byte[] largeFile);
 
         void DeleteSmallFile(Guid smallFile);
+
+        byte[] CreateMobileImage(Guid smallFile);
     }
 }

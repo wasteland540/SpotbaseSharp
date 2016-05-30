@@ -34,6 +34,9 @@ namespace SpotbaseSharp
             Container.RegisterType<IImageService, ImageService>();
             Container.RegisterType<IDataService, DataService>();
             Container.RegisterType<IGoogleDriveService, GoogleDriveService>();
+            Container.RegisterType<IFtpService, FtpService>();
+            Container.RegisterType<IJsonService, JsonService>();
+            Container.RegisterType<IConfigService, ConfigService>();
 
             //registraions utils
             //only one instance from messenger can exists! (recipient problems..)

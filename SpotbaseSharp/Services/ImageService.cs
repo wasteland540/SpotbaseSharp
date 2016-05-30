@@ -7,9 +7,6 @@ namespace SpotbaseSharp.Services
 {
     public class ImageService : IImageService
     {
-        private const string SmallImageFoldername = "SmallImages";
-        private const string LargeImageFoldername = "LargeImages";
-        private const string JpegExtension = ".jpeg";
         private readonly string _basePath = App.AppDirectory;
 
         public double[] GetLatLongFromImage(string filename, out DateTime createDate)
@@ -24,7 +21,7 @@ namespace SpotbaseSharp.Services
 
         public Guid CopyLargeFile(string filename)
         {
-            string largeFilePath = Path.Combine(_basePath, LargeImageFoldername);
+            string largeFilePath = Path.Combine(_basePath, SpotbaseConstants.LargeImageFoldername);
 
             if (!Directory.Exists(largeFilePath))
             {
@@ -32,7 +29,7 @@ namespace SpotbaseSharp.Services
             }
 
             Guid largeFile = Guid.NewGuid();
-            string largeFilename = Path.Combine(largeFilePath, largeFile + ".jpeg");
+            string largeFilename = Path.Combine(largeFilePath, largeFile + SpotbaseConstants.JpegExtension);
             File.Copy(filename, largeFilename);
 
             return largeFile;
@@ -40,7 +37,7 @@ namespace SpotbaseSharp.Services
 
         public Guid CopySmallFile(string filename)
         {
-            string smallFilePath = Path.Combine(_basePath, SmallImageFoldername);
+            string smallFilePath = Path.Combine(_basePath, SpotbaseConstants.SmallImageFoldername);
 
             if (!Directory.Exists(smallFilePath))
             {
@@ -48,7 +45,7 @@ namespace SpotbaseSharp.Services
             }
 
             Guid smallFile = Guid.NewGuid();
-            string smallFilename = Path.Combine(smallFilePath, smallFile + JpegExtension);
+            string smallFilename = Path.Combine(smallFilePath, smallFile + SpotbaseConstants.JpegExtension);
 
             ImageUtility.SaveSmallImage(filename, smallFilename);
 
@@ -84,17 +81,15 @@ namespace SpotbaseSharp.Services
 
         public byte[] LoadSmall(Guid smallFile)
         {
-            byte[] fileContent;
-
             string smallFilename = GetSmallFilenPath(smallFile);
-            fileContent = ImageUtility.LoadImage(smallFilename);
+            byte[] fileContent = ImageUtility.LoadImage(smallFilename);
 
             return fileContent;
         }
 
         public Guid CopySmallFile(byte[] smallFileContent)
         {
-            string smallFilePath = Path.Combine(_basePath, SmallImageFoldername);
+            string smallFilePath = Path.Combine(_basePath, SpotbaseConstants.SmallImageFoldername);
 
             if (!Directory.Exists(smallFilePath))
             {
@@ -102,7 +97,7 @@ namespace SpotbaseSharp.Services
             }
 
             Guid smallFile = Guid.NewGuid();
-            string smallFilename = Path.Combine(smallFilePath, smallFile + JpegExtension);
+            string smallFilename = Path.Combine(smallFilePath, smallFile + SpotbaseConstants.JpegExtension);
 
             File.WriteAllBytes(smallFilename, smallFileContent);
 
@@ -111,7 +106,7 @@ namespace SpotbaseSharp.Services
 
         public Guid CopyLargeFile(byte[] largeFileContent)
         {
-            string largeFilePath = Path.Combine(_basePath, LargeImageFoldername);
+            string largeFilePath = Path.Combine(_basePath, SpotbaseConstants.LargeImageFoldername);
 
             if (!Directory.Exists(largeFilePath))
             {
@@ -119,7 +114,7 @@ namespace SpotbaseSharp.Services
             }
 
             Guid largeFile = Guid.NewGuid();
-            string largeFilename = Path.Combine(largeFilePath, largeFile + JpegExtension);
+            string largeFilename = Path.Combine(largeFilePath, largeFile + SpotbaseConstants.JpegExtension);
 
             File.WriteAllBytes(largeFilename, largeFileContent);
 
@@ -133,18 +128,32 @@ namespace SpotbaseSharp.Services
             File.Delete(smallFilename);
         }
 
+        public byte[] CreateMobileImage(Guid smallFile)
+        {
+            string smallFilename = GetSmallFilenPath(smallFile);
+
+            const double oldWidth = 800;
+            const double oldHeigth = 600;
+
+            const double newWidth = 200;
+            const double sizeFactor = newWidth / oldWidth;
+            const double newHeigth = sizeFactor * oldHeigth;
+
+            return ImageUtility.LoadImage(smallFilename, (int) newWidth, (int) newHeigth);
+        }
+
         private string GetLargeFilenPath(Guid largeFile)
         {
-            string largeFilePath = Path.Combine(_basePath, LargeImageFoldername);
-            string largeFilename = Path.Combine(largeFilePath, largeFile + JpegExtension);
+            string largeFilePath = Path.Combine(_basePath, SpotbaseConstants.LargeImageFoldername);
+            string largeFilename = Path.Combine(largeFilePath, largeFile + SpotbaseConstants.JpegExtension);
 
             return largeFilename;
         }
 
         private string GetSmallFilenPath(Guid smallFile)
         {
-            string smallFilePath = Path.Combine(_basePath, SmallImageFoldername);
-            string smallFilename = Path.Combine(smallFilePath, smallFile + JpegExtension);
+            string smallFilePath = Path.Combine(_basePath, SpotbaseConstants.SmallImageFoldername);
+            string smallFilename = Path.Combine(smallFilePath, smallFile + SpotbaseConstants.JpegExtension);
 
             return smallFilename;
         }

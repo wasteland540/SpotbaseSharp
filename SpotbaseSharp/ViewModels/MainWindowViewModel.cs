@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using CSharpVitamins;
 using GalaSoft.MvvmLight.Messaging;
 using Microsoft.Practices.Unity;
 using SpotbaseSharp.Commands;
@@ -20,13 +21,12 @@ namespace SpotbaseSharp.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        private const string LocationUrlTemplate =
-            "https://maps.googleapis.com/maps/api/staticmap?size=500x400&maptype=roadmap&markers=color:blue%7C{0}, {1}&key=";
-
-        private const string RouteUrlTemplate = "https://www.google.com/maps/dir/Current+Location/{0}, {1}";
+        private readonly IConfigService _configService;
         private readonly IDataService _dataService;
         private readonly IDatabaseService _databaseService;
+        private readonly IFtpService _ftpService;
         private readonly IImageService _imageService;
+        private readonly IJsonService _jsonService;
         private readonly IMessenger _messenger;
         private ICommand _activateGoogleDriveCommand;
         private ICommand _addNewCommand;
@@ -42,15 +42,18 @@ namespace SpotbaseSharp.ViewModels
         private ICommand _exportCommand;
         private ExportView _exportView;
         private bool _gapChecked;
+        private ICommand _generateMobileKeyCommand;
         private IGoogleDriveService _googleDriveService;
         private Dictionary<string, string> _googledriveDownloadPathList;
         private bool _googledriveSaveLargeFile;
         private bool _hasLargeImage;
+        private bool _hasMobileKey;
         private ICommand _helpFilterCommand;
         private ICommand _importCommand;
         private bool _isGoogleDriveEnabled;
         private bool _ledgeChecked;
         private string _locationUrl;
+        private string _mobileKey;
         private bool _notSetChecked;
         private ICommand _openImageCommand;
         private ICommand _openMapCommand;
@@ -61,15 +64,20 @@ namespace SpotbaseSharp.ViewModels
         private string _searchValue;
         private string _selectedCity;
         private Spot _selectedSpot;
+        private ICommand _showMobileKeyCommand;
         private ObservableCollection<Spot> _spots;
+        private ICommand _updateMobileSpotsCommand;
 
         public MainWindowViewModel(IDatabaseService databaseService, IMessenger messenger, IImageService imageService,
-            IDataService dataService)
+            IDataService dataService, IJsonService jsonService, IFtpService ftpService, IConfigService configService)
         {
             _databaseService = databaseService;
             _messenger = messenger;
             _imageService = imageService;
             _dataService = dataService;
+            _jsonService = jsonService;
+            _ftpService = ftpService;
+            _configService = configService;
 
             //register for messages
             _messenger.Register<ChooseFilesConfirmMsg>(this, OnChooseFilesConfirmMsg);
@@ -79,7 +87,14 @@ namespace SpotbaseSharp.ViewModels
             _messenger.Register<FileProcessFinishedMsg>(this, OnFileProcessFinishedMsg);
 
             IsGoogleDriveEnabled =
-                Convert.ToBoolean(ConfigurationManager.AppSettings.Get(AppSettingConstants.IsGoogleDriveEnabled));
+                Convert.ToBoolean(_configService.GetAppSettingsValue(AppSettingConstants.IsGoogleDriveEnabled));
+
+            _mobileKey = _configService.GetAppSettingsValue(AppSettingConstants.MobileKey);
+
+            if (!string.IsNullOrEmpty(_mobileKey))
+            {
+                HasMobileKey = true;
+            }
 
             if (IsGoogleDriveEnabled)
             {
@@ -114,7 +129,7 @@ namespace SpotbaseSharp.ViewModels
                     _selectedSpot = value;
                     RaisePropertyChanged(() => SelectedSpot);
 
-                    LocationUrl = string.Format(LocationUrlTemplate,
+                    LocationUrl = string.Format(SpotbaseConstants.LocationUrlTemplate,
                         _selectedSpot.Lat.ToString(CultureInfo.InvariantCulture).Replace(",", "."),
                         _selectedSpot.Lng.ToString(CultureInfo.InvariantCulture).Replace(",", "."));
 
@@ -376,6 +391,43 @@ namespace SpotbaseSharp.ViewModels
             }
         }
 
+        public ICommand GenerateMobileKeyCommand
+        {
+            get
+            {
+                _generateMobileKeyCommand = _generateMobileKeyCommand ?? new DelegateCommand(GenerateMobileKey);
+                return _generateMobileKeyCommand;
+            }
+        }
+
+        public ICommand ShowMobileKeyCommand
+        {
+            get
+            {
+                _showMobileKeyCommand = _showMobileKeyCommand ?? new DelegateCommand(ShowMobileKey);
+                return _showMobileKeyCommand;
+            }
+        }
+
+        public ICommand UpdateMobileSpotsCommand
+        {
+            get
+            {
+                _updateMobileSpotsCommand = _updateMobileSpotsCommand ?? new DelegateCommand(UpdateMobileSpots);
+                return _updateMobileSpotsCommand;
+            }
+        }
+
+        public bool HasMobileKey
+        {
+            get { return _hasMobileKey; }
+            set
+            {
+                _hasMobileKey = value;
+                RaisePropertyChanged(() => HasMobileKey);
+            }
+        }
+
         #endregion Properties
 
         #region Private Methods
@@ -465,7 +517,7 @@ namespace SpotbaseSharp.ViewModels
 
         private void OpenMap(object obj)
         {
-            Process.Start(string.Format(RouteUrlTemplate,
+            Process.Start(string.Format(SpotbaseConstants.RouteUrlTemplate,
                 _selectedSpot.Lat.ToString(CultureInfo.InvariantCulture).Replace(",", "."),
                 _selectedSpot.Lng.ToString(CultureInfo.InvariantCulture).Replace(",", ".")));
         }
@@ -595,15 +647,7 @@ namespace SpotbaseSharp.ViewModels
                 {
                     _googleDriveService.CreateApplicationFolder();
 
-                    //Create the object
-                    Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
-                    //make changes
-                    config.AppSettings.Settings[AppSettingConstants.IsGoogleDriveEnabled].Value = "true";
-
-                    //save to apply changes
-                    config.Save(ConfigurationSaveMode.Modified);
-                    ConfigurationManager.RefreshSection("appSettings");
+                    _configService.SaveAppSettingsValue(AppSettingConstants.IsGoogleDriveEnabled, "true");
 
                     IsGoogleDriveEnabled = true;
                 }
@@ -694,6 +738,31 @@ namespace SpotbaseSharp.ViewModels
             {
                 File.Delete(tmpPath);
             }
+        }
+
+        private void GenerateMobileKey(object obj)
+        {
+            ShortGuid shortGuid = ShortGuid.NewGuid();
+            _mobileKey = shortGuid;
+
+            _configService.SaveAppSettingsValue(AppSettingConstants.MobileKey, _mobileKey);
+
+            HasMobileKey = true;
+
+            _messenger.Send(new MobileKeyGeneratedMsg());
+        }
+
+        private void ShowMobileKey(object obj)
+        {
+            _messenger.Send(new ShowMobileKeyMsg(_mobileKey));
+        }
+
+        private void UpdateMobileSpots(object obj)
+        {
+            string jsonSpots = _jsonService.ToJson(_spots.ToArray());
+            _ftpService.UploadSpots(_mobileKey, jsonSpots);
+
+            _messenger.Send(new MobileUpdateFinishedMsg());
         }
 
         #endregion Private Methods

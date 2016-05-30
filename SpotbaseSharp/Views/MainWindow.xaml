@@ -22,6 +22,8 @@
             <Setter Property="Margin" Value="10,3" />
             <Setter Property="Padding" Value="10,10" />
         </Style>
+
+        <converter:InvertBoolConverter x:Key="InvertBoolConverter" />
     </Window.Resources>
     <Grid>
         <Menu HorizontalAlignment="Stretch" Height="24" VerticalAlignment="Top">
@@ -81,6 +83,26 @@
                 <MenuItem Header="Google Drive Activation" Height="24" Command="{Binding ActivateGoogleDriveCommand}" ToolTip="This will create a 'SpotbaseSharp' folder in your Google Drive.">
                     <MenuItem.Icon>
                         <Image Source="../Resources/Google-Drive-icon.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Mobile">
+                <MenuItem.Icon>
+                    <Image Source="../Resources/msn-phone.png"/>
+                </MenuItem.Icon>
+                <MenuItem Header="Generate Mobile Key" Height="24" Command="{Binding GenerateMobileKeyCommand}" IsEnabled="{Binding HasMobileKey, Converter={StaticResource InvertBoolConverter}}" ToolTip="This will create a key for the mobile app.">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/key-add.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Show Mobile Key" Height="24" Command="{Binding ShowMobileKeyCommand}" IsEnabled="{Binding HasMobileKey}" ToolTip="This will display the key for the mobile app.">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/key-go.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Update Spots for Mobile App" Height="24" Command="{Binding UpdateMobileSpotsCommand}" IsEnabled="{Binding HasMobileKey}" ToolTip="This will update the spots for the mobile app.">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/db_update.png"/>
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>

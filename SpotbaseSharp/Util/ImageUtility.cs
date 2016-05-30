@@ -25,6 +25,21 @@ namespace SpotbaseSharp.Util
             return image;
         }
 
+        public static byte[] LoadImage(string fileName, int width, int height)
+        {
+            byte[] image;
+
+            Image tmpImage = ScaleImage(Image.FromFile(fileName), width, height);
+
+            using (var memStream = new MemoryStream())
+            {
+                tmpImage.Save(memStream, ImageFormat.Jpeg);
+                image = memStream.ToArray();
+            }
+
+            return image;
+        }
+
         public static byte[] LoadImageOriginal(string fileName)
         {
             byte[] image;
