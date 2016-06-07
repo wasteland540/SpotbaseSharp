@@ -67,6 +67,7 @@ namespace SpotbaseSharp.ViewModels
         private ICommand _showMobileKeyCommand;
         private ObservableCollection<Spot> _spots;
         private ICommand _updateMobileSpotsCommand;
+        private bool _lockLocation = true;
 
         public MainWindowViewModel(IDatabaseService databaseService, IMessenger messenger, IImageService imageService,
             IDataService dataService, IJsonService jsonService, IFtpService ftpService, IConfigService configService)
@@ -428,6 +429,16 @@ namespace SpotbaseSharp.ViewModels
             }
         }
 
+        public bool LockLocation
+        {
+            get { return _lockLocation; }
+            set
+            {
+                _lockLocation = value;
+                RaisePropertyChanged(() => LockLocation);
+            }
+        }
+        
         #endregion Properties
 
         #region Private Methods
@@ -440,6 +451,16 @@ namespace SpotbaseSharp.ViewModels
                 _databaseService.SaveChanges(_selectedSpot);
 
                 Reload();
+                
+                if (!_lockLocation)
+                {
+                    LockLocation = true;
+
+                    LocationUrl = string.Format(SpotbaseConstants.LocationUrlTemplate,
+                       _selectedSpot.Lat.ToString(CultureInfo.InvariantCulture).Replace(",", "."),
+                       _selectedSpot.Lng.ToString(CultureInfo.InvariantCulture).Replace(",", "."));
+                }
+
                 Mouse.OverrideCursor = null;
             }
         }
